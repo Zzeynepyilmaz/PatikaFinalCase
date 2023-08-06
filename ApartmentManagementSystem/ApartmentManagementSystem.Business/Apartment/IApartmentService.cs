@@ -2,8 +2,8 @@
 {
     public interface IApartmentService
     {
-        void AddApartment(Apartment apartment);
-        void UpdateApartment(Apartment apartment);
-        List<Apartment> GetApartments();
+        //void AddApartment(Apartment apartment);
+        //void UpdateApartment(Apartment apartment);
+        //List<Apartment> GetApartments();
     }
 }

@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="ApartmentManagementSystem.Business\Bill\" />
     <Folder Include="ApartmentManagementSystem.Service\LogFile\" />
   </ItemGroup>
 

@@ -1,6 +1,7 @@
 ﻿namespace ApartmentManagementSystem.ApartmentManagementSystem.Business.Apartment
 {
-    public class ApartmentService
+    public class ApartmentService : IApartmentService
     {
+        
     }
 }
