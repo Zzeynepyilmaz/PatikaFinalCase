@@ -1,4 +1,6 @@
-﻿using ApartmentManagementSystem.Entities;
+﻿using ApartmentManagementSystem.ApartmentManagementSystem.Base.ApiResponse;
+using ApartmentManagementSystem.ApartmentManagementSystem.Data.Uow;
+using ApartmentManagementSystem.Entities;
 using ApartmentManagementSystem.MsDbContext;
 using ApartmentManagementSystem.Repository;
 using AutoMapper;
@@ -11,100 +13,63 @@ namespace ApartmentManagementSystem.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly ManagementSystemDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IUnitOfWork unitOfWork;
+        private readonly ManagementSystemDbContext context;
+        private readonly IMapper mapper;
 
-        public UsersController(ManagementSystemDbContext context, IMapper mapper)
+        public UsersController(ManagementSystemDbContext context, IMapper mapper, IUnitOfWork unitOfWork)
         {
-            _context = context;
-            _mapper = mapper;
+            context = context;
+            mapper = mapper;
+            unitOfWork = unitOfWork;
+        }
+
+        [HttpGet]
+        public ApiResponse<List<User>> GetAll()
+        {
+            var userList = unitOfWork.UserRepository.GetAll();
+            var mapped = mapper.Map<List<User>, List<User>>(userList);
+            return new ApiResponse<List<User>>(mapped);
+        }
+
+        [HttpGet("{id}")]
+        public ApiResponse<User> GetById(int id)
+        {
+            var user = unitOfWork.UserRepository.GetById(id);
+            var mapped = mapper.Map<User>(user);
+            return new ApiResponse<User>(mapped);
+        }
+
+        [HttpPost]
+        public ApiResponse AddUser([FromBody] User user)
+        {
+            unitOfWork.UserRepository.Insert(user);
+            unitOfWork.UserRepository.Save();
+            return new ApiResponse();
+        }
+
+        [HttpPut("{id}")]
+        public ApiResponse UpdateUser(int id, [FromBody] User user)
+        {
+
+            unitOfWork.UserRepository.Insert(user);
+            user.UserId = id;
+
+            unitOfWork.UserRepository.Update(user);
+            unitOfWork.UserRepository.Save();
+            return new ApiResponse();
         }
 
 
-        [HttpPost("User")]
-        public IActionResult AddUser([FromBody] User user)
+        [HttpDelete("{id}")]
+        public ApiResponse DeleteUser(int id)
         {
-            _context.Users.Add(user);
-            _context.SaveChanges();
-
-            // HTTP 201 Created döner ve eklenen nesneyi gösterir
-            return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
-        }
-
-        [HttpGet("User/{id}")]
-        public IActionResult GetUser(int id)
-        {
-            var user = _context.Users.Find(id);
-
-            if (user == null)
-                return NotFound();
-
-            return Ok(user);
-        }
-
-        [HttpPut("User/{id}")]
-        public IActionResult UpdateUser(int id, [FromBody] User updatedUser)
-        {
-            var user = _context.Users.Find(id);
-
-            if (user == null)
-                return NotFound();
-
-            // update database
-            user.Name = updatedUser.Name;
-            user.TcNo = updatedUser.TcNo;
-
-            _context.SaveChanges();
-
-            return NoContent();
-        }
-
-        [HttpDelete("User/{id}")]
-        public IActionResult DeleteUser(int id)
-        {
-            var user = _context.Users.Find(id);
-
-            if (user == null)
-                return NotFound();
-
-            _context.Users.Remove(user);
-            _context.SaveChanges();
-
-            return NoContent();
-        }
-
-        // Kullanıcı işlemleri
-        // -------------------------------------------
-
-        // Kullanıcı işlemleri de Admin işlemleri ile benzer şekilde implemente edilebilir
-        // CRUD işlemleri için örnek metotlar oluşturulabilir
-
-        // Fatura ödeme işlemi
-        // -------------------------------------------
-
-
-        [HttpGet("Bill/{id}")]
-        public IActionResult GetBill(int id)
-        {
-            // Id'ye göre Bill'ı bul
-            var bill = _context.Bills.Find(id);
-
-            if (bill == null)
-                return NotFound();
-
-            return Ok(bill);
-        }
-        [HttpPost("PayBill")]
-        public IActionResult PayBill([FromBody] Bill bill)
-        {
-            // Veritabanına ekle
-            _context.Bills.Add(bill);
-            _context.SaveChanges();
-
-            // HTTP 201 Created döner ve eklenen nesneyi gösterir
-            return CreatedAtAction(nameof(GetBill), new { id = bill.BillId }, bill);
+            unitOfWork.UserRepository.DeleteById(id);
+            unitOfWork.UserRepository.Save();
+            return new ApiResponse();
         }
 
 
-    }   
+
+    }
 }

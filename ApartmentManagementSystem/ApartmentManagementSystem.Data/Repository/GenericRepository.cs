@@ -12,17 +12,19 @@ namespace ApartmentManagementSystem.Repository
         {
             this.msDbContext = msDbContext;
         }
-        public void Add(Entity entity)
-        {
-            msDbContext.Set<Entity>().Add(entity);
-        }
 
         public void Delete(Entity entity)
         {
             msDbContext.Set<Entity>().Remove(entity);
         }
 
-        public IEnumerable<Entity> GetAll()
+        public void DeleteById(int id)
+        {
+            var entity = msDbContext.Set<Entity>().Find(id);
+            Delete(entity);
+        }
+
+        public List<Entity> GetAll()
         {
             return msDbContext.Set<Entity>().AsNoTracking().ToList();
         }
@@ -34,13 +36,34 @@ namespace ApartmentManagementSystem.Repository
 
         public List<Entity> GetAllWithInclude(params string[] includes)
         {
-            throw new NotImplementedException();
+            var query = msDbContext.Set<Entity>().AsQueryable();
+            query = includes.Aggregate(query, (currenct, inc) => currenct.Include(inc));
+            return query.ToList();
         }
 
         public Entity GetById(int id)
         {
             var entity = msDbContext.Set<Entity>().Find(id);
             return entity;
+        }
+
+        public Entity GetByIdWithInclude(int id, params string[] includes)
+        {
+            var query = msDbContext.Set<Entity>().AsQueryable();
+            query = includes.Aggregate(query, (currenct, inc) => currenct.Include(inc));
+            return query.FirstOrDefault();// todo
+        }
+
+        public void Insert(Entity entity)
+        {
+    
+            var insertedEntity = msDbContext.Entry(entity);
+            insertedEntity.State = EntityState.Added;
+        }
+
+        public void Save()
+        {
+            msDbContext.SaveChanges();
         }
 
         public void Update(Entity entity)
@@ -50,12 +73,15 @@ namespace ApartmentManagementSystem.Repository
 
         public IEnumerable<Entity> Where(Expression<Func<Entity, bool>> expression)
         {
-            throw new NotImplementedException();
+            return msDbContext.Set<Entity>().Where(expression).AsQueryable();
         }
 
         public IEnumerable<Entity> WhereWithInclude(Expression<Func<Entity, bool>> expression, params string[] includes)
         {
-            throw new NotImplementedException();
+            var query = msDbContext.Set<Entity>().AsQueryable();
+            query.Where(expression);
+            query = includes.Aggregate(query, (currenct, inc) => currenct.Include(inc));
+            return query.ToList();
         }
     }
 }

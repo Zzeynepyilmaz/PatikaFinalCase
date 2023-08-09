@@ -1,50 +1,71 @@
-﻿using ApartmentManagementSystem.Entities;
+﻿using ApartmentManagementSystem.ApartmentManagementSystem.Base.ApiResponse;
+using ApartmentManagementSystem.ApartmentManagementSystem.Data.Uow;
+using ApartmentManagementSystem.Entities;
+using ApartmentManagementSystem.MsDbContext;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApartmentManagementSystem.Controllers
 {
-    public class AdminsController : Controller
+    [ApiController]
+    [Route("[controller]")]
+    public class AdminsController : ControllerBase
     {
-        // Gelen ödeme bilgilerini görüntüle
-        [HttpGet("payments")]
-        public ActionResult<IEnumerable<User>> GetPayments()
+        private readonly IUnitOfWork unitOfWork;
+        private readonly ManagementSystemDbContext context;
+        private readonly IMapper mapper;
+
+        public AdminsController(ManagementSystemDbContext context, IMapper mapper, IUnitOfWork unitOfWork)
         {
-            // Gelen ödeme bilgilerini veritabanından çekerek döndür
+            context = context;
+            mapper = mapper;
+            unitOfWork = unitOfWork;
         }
 
-        // Gelen mesajları görüntüle
-        [HttpGet("messages")]
-        public ActionResult<IEnumerable<Message>> GetAdminMessages()
+        [HttpGet]
+        public ApiResponse<List<Admin>> GetAll()
         {
-            // Gelen mesajları veritabanından çekerek döndür
+            var adminList = unitOfWork.AdminRepository.GetAll();
+            var mapped = mapper.Map<List<Admin>, List<Admin>>(adminList);
+            return new ApiResponse<List<Admin>>(mapped);
         }
 
-        // Aylık borç-alacak listesini görüntüle
-        [HttpGet("revenues")]
-        public ActionResult<IEnumerable<Revenue>> GetMonthlyRevenues()
+        [HttpGet("{id}")]
+        public ApiResponse<Admin> GetById(int id)
         {
-            // Aylık borç-alacak listesini veritabanından çekerek döndür
+            var admin = unitOfWork.AdminRepository.GetById(id);
+            var mapped = mapper.Map<Admin>(admin);
+            return new ApiResponse<Admin>(mapped);
         }
 
-        // Kişileri listele
-        [HttpGet("users")]
-        public ActionResult<IEnumerable<User>> GetUsers()
+        [HttpPost]
+        public ApiResponse AddAdmin([FromBody] Admin admin)
         {
-            // Kişileri veritabanından çekerek döndür
+            unitOfWork.AdminRepository.Insert(admin);
+            unitOfWork.AdminRepository.Save();
+            return new ApiResponse();
         }
 
-        // Daire/konut bilgilerini listele
-        [HttpGet("apartments")]
-        public ActionResult<IEnumerable<Apartment>> GetApartments()
+        [HttpPut("{id}")]
+        public ApiResponse UpdateAdmin(int id, [FromBody] Admin admin)
         {
-            // Daire/konut bilgilerini veritabanından çekerek döndür
+
+            unitOfWork.AdminRepository.Insert(admin);
+            admin.AdminId = id;
+
+            unitOfWork.AdminRepository.Update(admin);
+            unitOfWork.AdminRepository.Save();
+            return new ApiResponse();
         }
 
-        // Fatura ödemeyen kişilere günlük mail jobu çalıştır
-        [HttpPost("send_reminder_emails")]
-        public ActionResult SendReminderEmails()
+
+        [HttpDelete("{id}")]
+        public ApiResponse DeleteAdmin(int id)
         {
-            // Fatura ödemeyen kişilere günlük mail job
+            unitOfWork.AdminRepository.DeleteById(id);
+            unitOfWork.AdminRepository.Save();
+            return new ApiResponse();
         }
+
     }
 }

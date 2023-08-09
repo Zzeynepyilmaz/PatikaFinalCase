@@ -32,9 +32,15 @@ namespace ApartmentManagementSystem.ApartmentManagementSystem.Data.Uow
 
         public IGenericRepository<Revenue> RevenueRepository { get; private set; }
 
+        public void Complete()
+        {
+            msDbContext.SaveChanges();  
+        }
+
         public IGenericRepository<Entity> DynamicRepository<Entity>() where Entity : class
         {
             return new GenericRepository<Entity>(msDbContext);
         }
+
     }
 }

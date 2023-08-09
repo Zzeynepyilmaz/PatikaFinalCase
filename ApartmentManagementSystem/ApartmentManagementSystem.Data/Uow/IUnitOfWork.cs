@@ -1,4 +1,5 @@
-﻿using ApartmentManagementSystem.Entities;
+﻿using ApartmentManagementSystem.ApartmentManagementSystem.Core.Dtos;
+using ApartmentManagementSystem.Entities;
 using ApartmentManagementSystem.Repository;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Principal;
@@ -14,5 +15,7 @@ namespace ApartmentManagementSystem.ApartmentManagementSystem.Data.Uow
         IGenericRepository<Bill> BillRepository { get; }
         IGenericRepository<Message> MessageRepository { get; }
         IGenericRepository<Revenue> RevenueRepository { get; }
+        IGenericRepository<AdminLoginDto>  AdminLoginDtoRepository { get; }
+        void Complete();
     }
 }

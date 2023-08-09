@@ -1,89 +1,73 @@
-﻿using ApartmentManagementSystem.Entities;
+﻿using ApartmentManagementSystem.ApartmentManagementSystem.Base.ApiResponse;
+using ApartmentManagementSystem.ApartmentManagementSystem.Data.Uow;
+using ApartmentManagementSystem.Entities;
 using ApartmentManagementSystem.MsDbContext;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 
 namespace ApartmentManagementSystem.Controllers
 {
-    public class BillsController
+    [ApiController]
+    [Route("[controller]")]
+    public class BillsController : ControllerBase
     {
-        //private readonly ManagementSystemDbContext _context;
+        private readonly IUnitOfWork unitOfWork;
+        private readonly ManagementSystemDbContext context;
+        private readonly IMapper mapper;
 
-        //public BillsController(ManagementSystemDbContext context)
-        //{
-        //    _context = context;
-        //}
+        public BillsController(ManagementSystemDbContext context, IMapper mapper, IUnitOfWork unitOfWork)
+        {
+            context = context;
+            mapper = mapper;
+            unitOfWork = unitOfWork;
+        }
 
-        //// List bills
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<Bill>>> GetBills()
-        //{
-        //    return await _context.Bills.ToListAsync();
-        //}
+        [HttpGet]
+        public ApiResponse<List<Bill>> GetAll()
+        {
+            var billList = unitOfWork.BillRepository.GetAll();
+            var mapped = mapper.Map<List<Bill>, List<Bill>>(billList);
+            return new ApiResponse<List<Bill>>(mapped);
+        }
 
-        //// create new bill
-        //[HttpPost]
-        //public async Task<IActionResult> CreateBill(Bill bill)
-        //{
-        //    _context.Bills.Add(bill);
-        //    await _context.SaveChangesAsync();
-        //    return Ok(bill);
-        //}
+        [HttpGet("{id}")]
+        public ApiResponse<Bill> GetById(int id)
+        {
+            var bill = unitOfWork.BillRepository.GetById(id);
+            var mapped = mapper.Map<Bill>(bill);
+            return new ApiResponse<Bill>(mapped);
+        }
 
-        //// Fatura detaylarını getirme
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<Bill>> GetBill(int id)
-        //{
-        //    var fatura = await _context.Bills.FindAsync(id);
-        //    if (fatura == null)
-        //        return NotFound();
+        [HttpPost]
+        public ApiResponse AddBill([FromBody] Bill bill)
+        {
+            unitOfWork.BillRepository.Insert(bill);
+            unitOfWork.BillRepository.Save();
+            return new ApiResponse();
+        }
 
-        //    return fatura;
-        //}
+        [HttpPut("{id}")]
+        public ApiResponse UpdateBill(int id, [FromBody] Bill bill)
+        {
 
-        //// Fatura güncelleme
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateFatura(int id, Bill bill)
-        //{
-        //    if (id != bill.BillId)
-        //        return BadRequest();
+            unitOfWork.BillRepository.Insert(bill);
+            bill.BillId = id;
 
-        //    _context.Entry(bill).State = EntityState.Modified;
+            unitOfWork.BillRepository.Update(bill);
+            unitOfWork.BillRepository.Save();
+            return new ApiResponse();
+        }
 
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!FaturaExists(id))
-        //            return NotFound();
-        //        else
-        //            throw;
-        //    }
 
-        //    return NoContent();
-        //}
-
-        //// Fatura silme
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteFatura(int id)
-        //{
-        //    var fatura = await _context.Bills.FindAsync(id);
-        //    if (fatura == null)
-        //        return NotFound();
-
-        //    _context.Bills.Remove(fatura);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
-
-        //private bool FaturaExists(int id)
-        //{
-        //    return _context.Bills.Any(f => f.BillId == id);
-        //}
+        [HttpDelete("{id}")]
+        public ApiResponse DeleteBill(int id)
+        {
+            unitOfWork.BillRepository.DeleteById(id);
+            unitOfWork.BillRepository.Save();
+            return new ApiResponse();
+        }
     }
 
 }

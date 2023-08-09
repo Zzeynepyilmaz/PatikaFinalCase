@@ -1,45 +1,73 @@
-﻿using ApartmentManagementSystem.Entities;
+﻿using ApartmentManagementSystem.ApartmentManagementSystem.Base.ApiResponse;
+using ApartmentManagementSystem.ApartmentManagementSystem.Data.Uow;
+using ApartmentManagementSystem.Entities;
 using ApartmentManagementSystem.MsDbContext;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApartmentManagementSystem.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class ApartmentsController : ControllerBase
     {
-        private readonly ManagementSystemDbContext _context;
+        private readonly IUnitOfWork unitOfWork;
+        private readonly ManagementSystemDbContext context;
         private readonly IMapper _mapper;
 
-        public ApartmentsController(ManagementSystemDbContext context, IMapper mapper)
+        public ApartmentsController(ManagementSystemDbContext context, IMapper mapper, IUnitOfWork unitOfWork)
         {
-            _context = context;
-            _mapper = mapper;
+            context = context;
+            mapper = mapper;
+            unitOfWork = unitOfWork;
         }
+
         [HttpGet]
-    public ActionResult<IEnumerable<Apartment>> GetApartments()
+        public ApiResponse<List<Apartment>> GetAll()
         {
-            // Daire/konut bilgilerini veritabanından çekerek döndür
+            var apartmentList = unitOfWork.ApartmentRepository.GetAll();
+            var mapped = _mapper.Map<List<Apartment>, List<Apartment>>(apartmentList);
+            return new ApiResponse<List<Apartment>>(mapped);
         }
 
-        // Daire/konut bilgisi ekle
+        [HttpGet("{id}")]
+        public ApiResponse<Apartment> GetById(int id)
+        {
+            var apartment = unitOfWork.ApartmentRepository.GetById(id);
+            var mapped = _mapper.Map<Apartment>(apartment);
+            return new ApiResponse<Apartment>(mapped);
+        }
+
         [HttpPost]
-        public ActionResult AddApartment(Apartment apartment)
+        public ApiResponse AddApartment([FromBody] Apartment apartment)
         {
-            // Veritabanına yeni daire/konut bilgisini ekle
+            unitOfWork.ApartmentRepository.Insert(apartment);
+            unitOfWork.ApartmentRepository.Save();
+            return new ApiResponse();
         }
 
-        // Daire/konut bilgisini güncelle
         [HttpPut("{id}")]
-        public ActionResult UpdateApartment(int id, Apartment apartment)
+        public ApiResponse UpdateApartment(int id, [FromBody] Apartment apartment)
         {
-            // Veritabanında ilgili daire/konut bilgisini güncelle
+            
+            unitOfWork.ApartmentRepository.Insert(apartment);
+            apartment.ApartmentId = id;
+
+            unitOfWork.ApartmentRepository.Update(apartment);
+            unitOfWork.ApartmentRepository.Save();
+            return new ApiResponse();
         }
 
-        // Daire/konut bilgisini sil
+
         [HttpDelete("{id}")]
-        public ActionResult DeleteApartment(int id)
+        public ApiResponse DeleteApartment(int id)
         {
-            // Veritabanından ilgili daire/konut bilgisini sil
+            unitOfWork.ApartmentRepository.DeleteById(id);
+            unitOfWork.ApartmentRepository.Save();
+            return new ApiResponse();
         }
+
+        //Crud updated
     }
 }

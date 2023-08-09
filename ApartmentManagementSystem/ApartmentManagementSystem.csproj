@@ -22,12 +22,12 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="System.Collections" Version="4.3.0" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="ApartmentManagementSystem.Business\Bill\" />
-    <Folder Include="ApartmentManagementSystem.Service\LogFile\" />
   </ItemGroup>
 
 </Project>
