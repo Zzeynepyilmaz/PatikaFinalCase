@@ -1,4 +1,5 @@
-﻿using ApartmentManagementSystem.Entities;
+﻿using ApartmentManagementSystem.ApartmentManagementSystem.Core.Dtos;
+using ApartmentManagementSystem.Entities;
 using ApartmentManagementSystem.MsDbContext;
 using ApartmentManagementSystem.Repository;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,8 @@ namespace ApartmentManagementSystem.ApartmentManagementSystem.Data.Uow
         public IGenericRepository<Message> MessageRepository { get; private set; }
 
         public IGenericRepository<Revenue> RevenueRepository { get; private set; }
+
+        public IGenericRepository<AdminLoginDto> AdminLoginDtoRepository { get; private set; }
 
         public void Complete()
         {

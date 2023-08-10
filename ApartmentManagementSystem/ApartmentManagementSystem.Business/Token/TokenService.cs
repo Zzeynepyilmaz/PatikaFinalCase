@@ -4,6 +4,8 @@ using ApartmentManagementSystem.ApartmentManagementSystem.Base.Log;
 using ApartmentManagementSystem.ApartmentManagementSystem.Business.AdminLog;
 using ApartmentManagementSystem.ApartmentManagementSystem.Data.Uow;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -20,89 +22,89 @@ namespace ApartmentManagementSystem.ApartmentManagementSystem.Business.Token
             this.adminLogService = userLogService;
             this.jwtConfig = jwtConfig.CurrentValue;
         }
-        public ApiResponse<JwtTokenResponse> Login(JwtTokenRequest request)
-        {
-            if (request is null)
-            {
-                return new ApiResponse<JwtTokenResponse>("Request was null");
-            }
-            if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Password))
-            {
-                return new ApiResponse<JwtTokenResponse>("Request was null");
-            }
+        //public ApiResponse<JwtTokenResponse> Login(JwtTokenRequest request)
+        //{
+        //    if (request is null)
+        //    {
+        //        return new ApiResponse<JwtTokenResponse>("Request was null");
+        //    }
+        //    if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Password))
+        //    {
+        //        return new ApiResponse<JwtTokenResponse>("Request was null");
+        //    }
 
-            request.UserName = request.UserName.Trim().ToLower();
-            request.Password = request.Password.Trim();
-            var user = unitOfWork.UserRepository.Where(x => x.Name.Equals(request.UserName)).FirstOrDefault();
-            if (user is null)
-            {
-                Log(request.UserName, LogType.InValidUserName);
-                return new ApiResponse<JwtTokenResponse>("Invalid user informations");
-            }
-            if (user.Password.ToLower() != CreateMD5(request.Password))
-            {
-                user.PasswordRetryCount++;
-                user.LastActivity = DateTime.UtcNow;
+        //    request.UserName = request.UserName.Trim().ToLower();
+        //    request.Password = request.Password.Trim();
+        //    var user = unitOfWork.UserRepository.Where(x => x.Name.Equals(request.UserName)).FirstOrDefault();
+        //    if (user is null)
+        //    {
+        //        Log(request.UserName, LogType.InValidUserName);
+        //        return new ApiResponse<JwtTokenResponse>("Invalid user informations");
+        //    }
+        //    if (user.Password.ToLower() != CreateMD5(request.Password))
+        //    {
+        //        user.PasswordRetryCount++;
+        //        user.LastActivity = DateTime.UtcNow;
 
-                if (user.PasswordRetryCount > 3)
-                    user.Status = 2;
+        //        if (user.PasswordRetryCount > 3)
+        //            user.Status = 2;
 
-                unitOfWork.UserRepository.Update(user);
-                unitOfWork.Complete();
+        //        unitOfWork.UserRepository.Update(user);
+        //        unitOfWork.Complete();
 
-                Log(request.UserName, LogType.WrongPassword);
-                return new ApiResponse<JwtTokenResponse>("Invalid user informations");
-            }
-
-
-            if (user.Status != 1)
-            {
-                Log(request.UserName, LogType.InValidUserStatus);
-                return new ApiResponse<JwtTokenResponse>("Invalid user status");
-            }
-            if (user.PasswordRetryCount > 3)
-            {
-                Log(request.UserName, LogType.PasswordRetryCountExceded);
-                return new ApiResponse<JwtTokenResponse>("Password retry count exceded");
-            }
-
-            user.LastActivity = DateTime.UtcNow;
-            user.Status = 1;
+        //        Log(request.UserName, LogType.WrongPassword);
+        //        return new ApiResponse<JwtTokenResponse>("Invalid user informations");
+        //    }
 
 
-            unitOfWork.UserRepository.Update(user);
-            unitOfWork.Complete();
+        //    if (user.Status != 1)
+        //    {
+        //        Log(request.UserName, LogType.InValidUserStatus);
+        //        return new ApiResponse<JwtTokenResponse>("Invalid user status");
+        //    }
+        //    if (user.PasswordRetryCount > 3)
+        //    {
+        //        Log(request.UserName, LogType.PasswordRetryCountExceded);
+        //        return new ApiResponse<JwtTokenResponse>("Password retry count exceded");
+        //    }
+
+        //    user.LastActivity = DateTime.UtcNow;
+        //    user.Status = 1;
 
 
-            string token = Token(user);
+        //    unitOfWork.UserRepository.Update(user);
+        //    unitOfWork.Complete();
 
-            Log(request.UserName, LogType.LogedIn);
 
-            TokenResponse response = new()
-            {
-                AccessToken = token,
-                ExpireTime = DateTime.Now.AddMinutes(jwtConfig.AccessTokenExpiration),
-                UserName = user.UserName
-            };
+        //    string token = Token(user);
 
-            return new ApiResponse<TokenResponse>(response);
-        }
-        private string Token(User user)
-        {
-            Claim[] claims = GetClaims(user);
-            var secret = Encoding.ASCII.GetBytes(jwtConfig.Secret);
+        //    Log(request.UserName, LogType.LogedIn);
 
-            var jwtToken = new JwtSecurityToken(
-                jwtConfig.Issuer,
-                jwtConfig.Audience,
-                claims,
-                expires: DateTime.Now.AddMinutes(jwtConfig.AccessTokenExpiration),
-                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(secret), SecurityAlgorithms.HmacSha256Signature)
-                );
+        //    JwtTokenResponse response = new()
+        //    {
+        //        AccessToken = token,
+        //        ExpireTime = DateTime.Now.AddMinutes(jwtConfig.AccessTokenExpiration),
+        //        UserName = user.Name
+        //    };
 
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-            return accessToken;
-        }
+        //    return new ApiResponse<JwtTokenResponse>(response);
+        //}
+        //private string Token(User user)
+        //{
+        //    Claim[] claims = GetClaims(user);
+        //    var secret = Encoding.ASCII.GetBytes(jwtConfig.Secret);
+
+        //    var jwtToken = new JwtSecurityToken(
+        //        jwtConfig.Issuer,
+        //        jwtConfig.Audience,
+        //        claims,
+        //        expires: DateTime.Now.AddMinutes(jwtConfig.AccessTokenExpiration),
+        //        signingCredentials: new SigningCredentials(new SymmetricSecurityKey(secret), SecurityAlgorithms.HmacSha256Signature)
+        //        );
+
+        //    var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+        //    return accessToken;
+        //}
 
     }
 }

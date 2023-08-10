@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using ApartmentManagementSystem.ApartmentManagementSystem.Core.Dtos;
+using ApartmentManagementSystem.Entities;
+using AutoMapper;
 
 namespace ApartmentManagementSystem.ApartmentManagementSystem.Core.MapperConfig
 {
@@ -6,7 +8,8 @@ namespace ApartmentManagementSystem.ApartmentManagementSystem.Core.MapperConfig
     {
         public MapperConfig()
         {
-
+            CreateMap<User, UserDto>();
+            CreateMap<Admin, AdminLoginDto>();
         }
     }
 }
